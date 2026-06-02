@@ -196,6 +196,12 @@ h1, h2, h3, h4, .font-display {
   padding: 8rem 1.5rem;
 }
 
+/* Skip render for off-screen sections (excluding hero for LCP) */
+.stage-section:not([data-section="hero"]) {
+  content-visibility: auto;
+  contain-intrinsic-size: 100vh;
+}
+
 .stage-content {
   width: 100%;
   max-width: 540px;

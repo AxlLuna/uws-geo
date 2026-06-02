@@ -13,11 +13,16 @@ type P = {
   twinkle: number;
 };
 
+type IdleWindow = Window & {
+  requestIdleCallback?: (cb: () => void) => number;
+  cancelIdleCallback?: (id: number) => void;
+};
+
 export default function Particles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const rafRef = useRef<number | null>(null);
   const particlesRef = useRef<P[]>([]);
-  const sizeRef = useRef({ w: 0, h: 0, dpr: 1 });
+  const sizeRef = useRef({ w: 0, h: 0, dpr: 1, isMobile: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -29,14 +34,16 @@ export default function Particles() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const w = window.innerWidth;
       const h = window.innerHeight;
-      sizeRef.current = { w, h, dpr };
+      const isMobile = w < 768;
+      sizeRef.current = { w, h, dpr, isMobile };
       canvas.width = Math.round(w * dpr);
       canvas.height = Math.round(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.scale(dpr, dpr);
 
-      const count = Math.round((w * h) / 9000); // density
+      const density = isMobile ? 18000 : 9000;
+      const count = Math.round((w * h) / density);
       const arr: P[] = [];
       for (let i = 0; i < count; i++) {
         const z = Math.random();
@@ -49,10 +56,10 @@ export default function Particles() {
           vy: (Math.random() - 0.5) * 0.06 * (0.4 + z),
           hue:
             Math.random() < 0.45
-              ? 188 // cyan
+              ? 188
               : Math.random() < 0.75
-                ? 270 // purple
-                : 310, // magenta accent
+                ? 270
+                : 310,
           twinkle: Math.random() * Math.PI * 2,
         });
       }
@@ -60,9 +67,10 @@ export default function Particles() {
     };
 
     const tick = () => {
-      const { w, h } = sizeRef.current;
+      const { w, h, isMobile } = sizeRef.current;
       ctx.clearRect(0, 0, w, h);
       const t = performance.now() * 0.001;
+      const shadowBlur = isMobile ? 0 : 8;
       for (const p of particlesRef.current) {
         p.x += p.vx;
         p.y += p.vy;
@@ -74,26 +82,43 @@ export default function Particles() {
           (0.25 + p.z * 0.55) * (0.6 + Math.sin(t * 0.8 + p.twinkle) * 0.4);
         ctx.beginPath();
         ctx.fillStyle = `hsla(${p.hue}, 100%, 72%, ${alpha})`;
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = `hsla(${p.hue}, 100%, 65%, ${alpha * 0.6})`;
+        if (shadowBlur > 0) {
+          ctx.shadowBlur = shadowBlur;
+          ctx.shadowColor = `hsla(${p.hue}, 100%, 65%, ${alpha * 0.6})`;
+        }
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
       }
       rafRef.current = requestAnimationFrame(tick);
     };
 
-    init();
-    tick();
-
+    let resizeRaf = 0;
     const onResize = () => {
-      // reset transform before re-scaling
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      init();
+      cancelAnimationFrame(resizeRaf);
+      resizeRaf = requestAnimationFrame(() => {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        init();
+      });
     };
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onResize, { passive: true });
+
+    const idleWin = window as IdleWindow;
+    const schedule =
+      idleWin.requestIdleCallback ??
+      ((cb: () => void) => window.setTimeout(cb, 200));
+    const idleId = schedule(() => {
+      init();
+      tick();
+    });
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(resizeRaf);
+      if (idleWin.cancelIdleCallback) {
+        idleWin.cancelIdleCallback(idleId as number);
+      } else {
+        window.clearTimeout(idleId as number);
+      }
       window.removeEventListener("resize", onResize);
     };
   }, []);

@@ -1,20 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import dynamic from "next/dynamic";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import HeroSection from "./HeroSection";
-import ManifestoSection from "./ManifestoSection";
-import CtaSection from "./CtaSection";
-import Particles from "./Particles";
+
+const Particles = dynamic(() => import("./Particles"), { ssr: false });
 
 gsap.registerPlugin(ScrollTrigger);
 
-export default function ScrollScene() {
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(cb: () => void) {
+  const mq = window.matchMedia(REDUCED_MOTION_QUERY);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+function getReducedMotion() {
+  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+}
+function getReducedMotionServer() {
+  return false;
+}
+
+export default function ScrollScene({ children }: { children: React.ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const auraRef = useRef<HTMLDivElement>(null);
   const [ready, setReady] = useState(false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotion,
+    getReducedMotionServer,
+  );
 
   // Wait for video to have enough data to seek
   useEffect(() => {
@@ -23,21 +41,31 @@ export default function ScrollScene() {
 
     const onLoaded = () => setReady(true);
 
-    if (v.readyState >= 2) onLoaded();
-    else v.addEventListener("loadeddata", onLoaded);
+    if (v.readyState >= 1) onLoaded();
+    else {
+      v.addEventListener("loadedmetadata", onLoaded);
+      v.addEventListener("canplay", onLoaded);
+    }
 
-    return () => v.removeEventListener("loadeddata", onLoaded);
+    const fallback = window.setTimeout(onLoaded, 4000);
+
+    return () => {
+      v.removeEventListener("loadedmetadata", onLoaded);
+      v.removeEventListener("canplay", onLoaded);
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   // Scroll → currentTime
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || reducedMotion) return;
     const container = containerRef.current;
     const video = videoRef.current;
     const aura = auraRef.current;
     if (!container || !video || !aura) return;
 
     const triggers: ScrollTrigger[] = [];
+    const sections = gsap.utils.toArray<HTMLElement>("[data-section]");
 
     triggers.push(
       ScrollTrigger.create({
@@ -56,7 +84,6 @@ export default function ScrollScene() {
     );
 
     // Aura color shift per section
-    const sections = gsap.utils.toArray<HTMLElement>("[data-section]");
     sections.forEach((sec) => {
       const a1 = sec.dataset.aura1;
       const a2 = sec.dataset.aura2;
@@ -97,7 +124,7 @@ export default function ScrollScene() {
         ease: "power3.out",
       });
 
-      gsap.utils.toArray<HTMLElement>("[data-section]").forEach((sec) => {
+      sections.forEach((sec) => {
         if (sec.dataset.section === "hero") return;
         const children = Array.from(
           sec.querySelectorAll(":scope > div > *"),
@@ -117,11 +144,11 @@ export default function ScrollScene() {
       triggers.forEach((t) => t.kill());
       ctx.revert();
     };
-  }, [ready]);
+  }, [ready, reducedMotion]);
 
   return (
     <>
-      <Particles />
+      {!reducedMotion && <Particles />}
 
       <div ref={auraRef} className="character-aura" aria-hidden />
       <div className="character-halo" aria-hidden />
@@ -129,12 +156,21 @@ export default function ScrollScene() {
       <div className="character-stage">
         <video
           ref={videoRef}
-          src="/videos/scene.mp4"
           muted
           playsInline
+          {...({ "webkit-playsinline": "true" } as Record<string, string>)}
           preload="auto"
+          poster="/images/scene-poster.jpg"
+          disableRemotePlayback
           className="absolute inset-0 w-full h-full object-cover"
-        />
+        >
+          <source
+            src="/videos/scene-mobile.mp4"
+            type="video/mp4"
+            media="(max-width: 768px)"
+          />
+          <source src="/videos/scene.mp4" type="video/mp4" />
+        </video>
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center text-[#00E5FF]/80 font-mono text-xs tracking-widest">
             LOADING…
@@ -146,9 +182,7 @@ export default function ScrollScene() {
       <div className="grain" aria-hidden />
 
       <div ref={containerRef} className="relative z-10 flex flex-col">
-        <HeroSection />
-        <ManifestoSection />
-        <CtaSection />
+        {children}
       </div>
     </>
   );
