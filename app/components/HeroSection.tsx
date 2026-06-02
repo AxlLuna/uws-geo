@@ -1,5 +1,3 @@
-"use client";
-
 export default function HeroSection() {
   return (
     <section
@@ -12,40 +10,39 @@ export default function HeroSection() {
         <div className="caption">Vibe · GEO Protocol v1</div>
 
         <h1 className="font-display text-[clamp(2.75rem,6.5vw,5.5rem)] leading-[0.92] text-glow">
-          ¿Tu negocio
+          Does your
           <br />
-          existe para
+          business exist
           <br />
-          <span className="text-gradient">la inteligencia</span>
+          <span className="text-gradient">for artificial</span>
           <br />
-          <span className="text-gradient">artificial?</span>
+          <span className="text-gradient">intelligence?</span>
         </h1>
 
         <p className="text-base md:text-lg text-white/55 max-w-md leading-relaxed">
-          Cuando alguien le pregunta a ChatGPT, Claude o Perplexity por tu
-          industria —{" "}
-          <span className="text-white/90">¿apareces tú, o tu competencia?</span>
+          When someone asks ChatGPT, Claude, or Perplexity about your industry —{" "}
+          <span className="text-white/90">do you show up, or your competition?</span>
         </p>
 
-        <div className="flex items-center gap-4 mt-2">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mt-2">
           <a
             href="https://isitagentready.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="group relative inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-medium text-sm hover:bg-white/90 transition-all"
+            className="group relative inline-flex w-fit items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-medium text-sm hover:bg-white/90 transition-all"
           >
-            Descubre tu score
+            Get your score
             <span className="transition-transform group-hover:translate-x-1">
               →
             </span>
           </a>
           <span className="font-mono text-[10px] text-white/40 uppercase tracking-wider">
-            60 seg · gratis
+            60 sec · free
           </span>
         </div>
       </div>
 
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5 text-white/40 z-20">
+      <div className="hidden md:flex absolute bottom-10 left-1/2 -translate-x-1/2 flex-col items-center gap-1.5 text-white/40 z-20">
         <span className="font-mono text-[10px] uppercase tracking-[0.3em]">
           scroll
         </span>

@@ -1,5 +1,3 @@
-"use client";
-
 export default function ManifestoSection() {
   return (
     <section
@@ -9,17 +7,17 @@ export default function ManifestoSection() {
       className="stage-section relative w-full"
     >
       <div className="stage-content flex flex-col gap-8">
-        <div className="caption">El cambio silencioso</div>
+        <div className="caption">The silent shift</div>
 
         <h2 className="font-display text-[clamp(2.25rem,4.8vw,3.75rem)] leading-[0.95] text-glow">
-          <span className="text-white/40">El SEO</span>
+          <span className="text-white/40">SEO</span>
           <br />
-          <span className="text-white/40">optimiza para</span>{" "}
+          <span className="text-white/40">optimizes for</span>{" "}
           <span className="text-white">Google.</span>
           <br />
-          <span className="text-gradient">GEO optimiza</span>
+          <span className="text-gradient">GEO optimizes</span>
           <br />
-          <span className="text-gradient">para la IA.</span>
+          <span className="text-gradient">for AI.</span>
         </h2>
 
         <div className="flex items-baseline gap-5 py-2">
@@ -27,24 +25,24 @@ export default function ManifestoSection() {
             40<span className="text-[#00E5FF]">%</span>
           </div>
           <p className="text-white/55 text-sm md:text-base leading-snug max-w-[200px]">
-            de las búsquedas en Google ya{" "}
-            <span className="text-white/90">terminan sin un clic.</span>
+            of Google searches now{" "}
+            <span className="text-white/90">end without a click.</span>
           </p>
         </div>
 
         <p className="text-base md:text-lg text-white/65 leading-relaxed max-w-md">
-          GEO estructura tu contenido, datos y señales técnicas para que los
-          modelos de lenguaje te{" "}
-          <span className="text-white">encuentren, entiendan y recomienden</span>{" "}
-          — antes que a cualquier otro.
+          GEO structures your content, data, and technical signals so language
+          models{" "}
+          <span className="text-white">find, understand, and recommend you</span>{" "}
+          — before anyone else.
         </p>
 
         <div className="grid grid-cols-2 gap-3 max-w-md mt-2">
           {[
-            ["llms.txt", "Índice para LLMs"],
-            ["robots", "Permisos para crawlers IA"],
-            ["markdown", "Contenido limpio"],
-            ["velocidad", "< 200ms response"],
+            ["llms.txt", "Index for LLMs"],
+            ["robots", "AI crawler permissions"],
+            ["markdown", "Clean content"],
+            ["speed", "< 200ms response"],
           ].map(([k, v]) => (
             <div key={k} className="flex flex-col gap-0.5">
               <span className="font-mono text-[10px] uppercase tracking-wider text-[#00E5FF]/80">
