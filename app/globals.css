@@ -1,0 +1,314 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-bg: #0a0518;
+  --color-primary: #7b2fff;
+  --color-secondary: #00e5ff;
+  --color-accent: #b066ff;
+  --color-magenta: #ff3df0;
+  --color-text: #ffffff;
+  --color-text-muted: #8892a4;
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+}
+
+:root {
+  --aura-1: 0, 229, 255;
+  --aura-2: 123, 47, 255;
+  --char-width-desk: 38vw;
+  --char-width-tab: 60vw;
+}
+
+html, body {
+  background: #0a0518;
+  color: #ffffff;
+  font-family: var(--font-inter), Inter, system-ui, sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: var(--font-space-grotesk), "Space Grotesk", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.05em;
+}
+
+.text-gradient {
+  background: linear-gradient(95deg, #7b2fff 0%, #b066ff 40%, #00e5ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-glow {
+  text-shadow:
+    0 0 30px rgba(0, 229, 255, 0.18),
+    0 0 70px rgba(123, 47, 255, 0.18);
+}
+
+/* ============================================
+   CHARACTER STAGE — fixed right, full height
+   ============================================ */
+.character-stage {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: var(--char-width-desk);
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.character-stage video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  /* Vibrance boost */
+  filter: saturate(1.3) contrast(1.05) brightness(1.12);
+  /* Horizontal fade on LEFT edge so character melts into page bg */
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 6%,
+    rgba(0, 0, 0, 0.55) 14%,
+    rgba(0, 0, 0, 0.9) 24%,
+    #000 36%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 0, 0, 0.15) 6%,
+    rgba(0, 0, 0, 0.55) 14%,
+    rgba(0, 0, 0, 0.9) 24%,
+    #000 36%,
+    #000 100%
+  );
+}
+
+/* Aura behind the character — large diffuse glow shifting per section */
+.character-aura {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  width: calc(var(--char-width-desk) * 1.4);
+  height: 130vh;
+  transform: translateY(-50%);
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 55% 65% at 65% 50%,
+    rgba(var(--aura-1), 0.45) 0%,
+    rgba(var(--aura-2), 0.32) 25%,
+    rgba(var(--aura-2), 0.12) 50%,
+    transparent 78%
+  );
+  filter: blur(80px);
+  transition: background 1.4s ease-out;
+}
+
+/* Subtle inner light leak */
+.character-halo {
+  position: fixed;
+  top: 50%;
+  right: 4vw;
+  width: 32vw;
+  height: 70vh;
+  transform: translateY(-50%);
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--aura-1), 0.18) 0%,
+    rgba(var(--aura-2), 0.08) 40%,
+    transparent 65%
+  );
+  filter: blur(50px);
+  mix-blend-mode: screen;
+}
+
+/* Particles canvas — full screen, behind everything */
+.particles-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* Filmic grain — SVG noise */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* Vignette — dark corners pulling focus inward */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  /* ONLY darkens the left text area — character (right half) untouched */
+  background: linear-gradient(
+    to right,
+    rgba(10, 5, 24, 0.65) 0%,
+    rgba(10, 5, 24, 0.2) 22%,
+    transparent 38%,
+    transparent 100%
+  );
+}
+
+/* ============================================
+   GLASS — softer ambient
+   ============================================ */
+.glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 14px;
+}
+
+/* ============================================
+   LAYOUT — text on left, character on right
+   ============================================ */
+.stage-section {
+  position: relative;
+  z-index: 6;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 8rem 1.5rem;
+}
+
+.stage-content {
+  width: 100%;
+  max-width: 540px;
+}
+
+@media (min-width: 1024px) {
+  .stage-section {
+    padding-left: clamp(3rem, 6vw, 6rem);
+    padding-right: var(--char-width-desk);
+  }
+  .stage-content {
+    max-width: 520px;
+  }
+}
+
+/* Caption — editorial mono tag with cyan accent */
+.caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(0, 229, 255, 0.9);
+}
+.caption::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: rgba(0, 229, 255, 0.7);
+}
+
+/* ============================================
+   MOBILE — stack: character on top, text below
+   ============================================ */
+@media (max-width: 1023px) {
+  .character-stage {
+    width: 100vw;
+    height: 55vh;
+    top: 0;
+    right: 0;
+    transform: none;
+  }
+  .character-stage video {
+    -webkit-mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 55%,
+      rgba(0, 0, 0, 0.7) 75%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to bottom,
+      #000 0%,
+      #000 55%,
+      rgba(0, 0, 0, 0.7) 75%,
+      transparent 100%
+    );
+  }
+  .character-aura {
+    top: 27vh;
+    right: 50%;
+    transform: translate(50%, -50%);
+    width: 110vw;
+    height: 65vh;
+    background: radial-gradient(
+      ellipse 50% 50% at 50% 50%,
+      rgba(var(--aura-1), 0.3) 0%,
+      rgba(var(--aura-2), 0.18) 35%,
+      transparent 75%
+    );
+  }
+  .character-halo { display: none; }
+  .stage-section {
+    padding-top: 55vh;
+    padding-bottom: 4rem;
+    align-items: flex-start;
+    min-height: auto;
+  }
+  .vignette {
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 50vh,
+      rgba(10, 5, 24, 0.4) 55vh,
+      rgba(10, 5, 24, 0.1) 70vh,
+      transparent 100%
+    );
+  }
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float { animation: float-y 4s ease-in-out infinite; }
+
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+.animate-bounce-down { animation: bounce-down 2s ease-in-out infinite; }
+
+::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+::selection {
+  background: rgba(0, 229, 255, 0.3);
+  color: #fff;
+}
