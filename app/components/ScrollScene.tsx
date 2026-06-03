@@ -34,25 +34,36 @@ export default function ScrollScene({ children }: { children: React.ReactNode })
     getReducedMotionServer,
   );
 
-  // Wait for video to have enough data to seek
+  // Pick the right encode per viewport (iOS Safari ignores <source media>)
+  // then wait for real frame data before enabling scroll-scrub.
   useEffect(() => {
     const v = videoRef.current;
     if (!v) return;
 
-    const onLoaded = () => setReady(true);
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    v.src = isMobile ? "/videos/scene-mobile.mp4" : "/videos/scene.mp4";
+    v.load();
 
-    if (v.readyState >= 1) onLoaded();
-    else {
-      v.addEventListener("loadedmetadata", onLoaded);
-      v.addEventListener("canplay", onLoaded);
+    const onReady = () => {
+      if (v.readyState >= 2 && Number.isFinite(v.duration)) {
+        setReady(true);
+      }
+    };
+
+    v.addEventListener("loadeddata", onReady);
+    v.addEventListener("canplay", onReady);
+
+    // iOS often won't preload on cellular until a play() call. Kick it.
+    const kick = v.play();
+    if (kick && typeof kick.then === "function") {
+      kick.then(() => v.pause()).catch(() => {
+        // Autoplay blocked — that's fine, we just need bytes flowing.
+      });
     }
 
-    const fallback = window.setTimeout(onLoaded, 4000);
-
     return () => {
-      v.removeEventListener("loadedmetadata", onLoaded);
-      v.removeEventListener("canplay", onLoaded);
-      window.clearTimeout(fallback);
+      v.removeEventListener("loadeddata", onReady);
+      v.removeEventListener("canplay", onReady);
     };
   }, []);
 
@@ -163,14 +174,7 @@ export default function ScrollScene({ children }: { children: React.ReactNode })
           poster="/images/scene-poster.jpg"
           disableRemotePlayback
           className="absolute inset-0 w-full h-full object-cover"
-        >
-          <source
-            src="/videos/scene-mobile.mp4"
-            type="video/mp4"
-            media="(max-width: 768px)"
-          />
-          <source src="/videos/scene.mp4" type="video/mp4" />
-        </video>
+        />
         {!ready && (
           <div className="absolute inset-0 flex items-center justify-center text-[#00E5FF]/80 font-mono text-xs tracking-widest">
             LOADING…
